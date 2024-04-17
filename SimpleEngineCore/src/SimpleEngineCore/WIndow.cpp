@@ -4,6 +4,11 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#define IMGUI_IMPL_OPENGL_SHADER_VERSION "#version 130"
+
+#include <imgui/imgui.h>
+#include <imgui/backends/imgui_impl_opengl3.h>
+
 namespace  SimpleEngine {
     
     static bool GLFW_initialized = false;
@@ -11,6 +16,10 @@ namespace  SimpleEngine {
     Window::Window(std::string title, const unsigned int width, const unsigned int height) 
         : data({std::move(title), width, height}){
         int resCode = init();
+
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGui_ImplOpenGL3_Init();
     }
 
     Window::~Window(){
@@ -95,6 +104,19 @@ namespace  SimpleEngine {
     void Window::on_update(){
         glClearColor(1,0,0,0);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        ImGuiIO& io = ImGui::GetIO();
+        io.DisplaySize.x = static_cast<float>(get_width());
+        io.DisplaySize.y = static_cast<float>(get_height());
+        
+        ImGui_ImplOpenGL3_NewFrame(); // create fram where we will draw
+        ImGui::NewFrame();
+
+        ImGui::ShowDemoWindow(); // create data 
+        
+        ImGui::Render(); // draw data using imgui 
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData()); // use our data to draw using opengl for example
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
