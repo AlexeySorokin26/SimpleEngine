@@ -43,6 +43,7 @@ namespace SimpleEngine{
             window->on_update();
             on_update();
         }
+        return 0;
     }
 
     void Application::on_update(){
