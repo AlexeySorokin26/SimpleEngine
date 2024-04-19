@@ -5,43 +5,44 @@
 #include <string> 
 #include <functional>
 
-struct GLFWwindow; 
+struct GLFWwindow;
 
-namespace SimpleEngine{
+namespace SimpleEngine {
 
-    class Window{
+	class Window {
 
-    public:
-        using EventCallBackFn = std::function<void(BaseEvent&)>;
+	public:
+		using EventCallBackFn = std::function<void(BaseEvent&)>;
 
-        Window(std::string title, const unsigned int width, const unsigned int height);
+		Window(std::string title, const unsigned int width, const unsigned int height);
 
-        ~Window();
-        
-        Window(const Window&) = delete;
-        Window(const Window&&) = delete;
-        Window& operator=(const Window&) = delete;
-        Window& operator=(Window&&) = delete;
+		~Window();
 
-        void on_update();
+		Window(const Window&) = delete;
+		Window(const Window&&) = delete;
+		Window& operator=(const Window&) = delete;
+		Window& operator=(Window&&) = delete;
 
-        unsigned int get_width() const { return data.width; }
-        unsigned int get_height() const { return data.height; }
+		void on_update();
 
-        void set_event_callback(const EventCallBackFn& callback) { data.eventCallbackFn = callback; }
+		unsigned int get_width() const { return data.width; }
+		unsigned int get_height() const { return data.height; }
 
-    private:
-        struct WindowData{
-            std::string name;
-            unsigned int width;
-            unsigned int height;
-            EventCallBackFn eventCallbackFn;
-        };
-        int init();
-        void shutdown();
+		void set_event_callback(const EventCallBackFn& callback) { data.eventCallbackFn = callback; }
 
-        GLFWwindow* window = nullptr;
-        WindowData data;
-    };
+	private:
+		struct WindowData {
+			std::string name;
+			unsigned int width;
+			unsigned int height;
+			EventCallBackFn eventCallbackFn;
+		};
+		int init();
+		void shutdown();
+
+		GLFWwindow* window = nullptr;
+		WindowData data;
+		float backgroundColor[4] = { 1.f,0.f,0.f,0.f };
+	};
 
 }

@@ -8,117 +8,124 @@
 
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
+#include <imgui/backends/imgui_impl_glfw.h>
 
 namespace  SimpleEngine {
-    
-    static bool GLFW_initialized = false;
 
-    Window::Window(std::string title, const unsigned int width, const unsigned int height) 
-        : data({std::move(title), width, height}){
-        int resCode = init();
+	static bool GLFW_initialized = false;
 
-        IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
-        ImGui_ImplOpenGL3_Init();
-    }
+	Window::Window(std::string title, const unsigned int width, const unsigned int height)
+		: data({ std::move(title), width, height }) {
+		int resCode = init();
 
-    Window::~Window(){
-        shutdown();
-    }
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGui_ImplOpenGL3_Init();
+		ImGui_ImplGlfw_InitForOpenGL(window, true);
+	}
 
-    int Window::init(){
+	Window::~Window() {
+		shutdown();
+	}
 
-        LOG_INFO("Creating window");
-        
-        /* Initialize the library */
-        if(!GLFW_initialized){
-            if (!glfwInit()){
-                LOG_CRITICAL("Can't initialized glfw.");
-                return -1;
-            }
-            GLFW_initialized = true;
-        }
+	int Window::init() {
 
-        /* Create a windowed mode window and its OpenGL context */
-        window = glfwCreateWindow(data.width, data.height, data.name.c_str(), nullptr, nullptr);
-        if(!window)
-        {
-            glfwTerminate();
-            LOG_CRITICAL("Can't create window.");
-            return -2;
-        }
-        
+		LOG_INFO("Creating window");
 
-        /* Make the window's context current */
-        glfwMakeContextCurrent(window);
+		/* Initialize the library */
+		if (!GLFW_initialized) {
+			if (!glfwInit()) {
+				LOG_CRITICAL("Can't initialized glfw.");
+				return -1;
+			}
+			GLFW_initialized = true;
+		}
 
-        // Link all possible opengl functions
-        // GLADloadproc is a loader. We can use it from glad or from glfw. Here we are using glfw one.
-        // GLADloadproc takes name of function and returns address of this function
-        if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
-            LOG_CRITICAL("Failed to initialize GLAD");
-            return -1;
-        }
+		/* Create a windowed mode window and its OpenGL context */
+		window = glfwCreateWindow(data.width, data.height, data.name.c_str(), nullptr, nullptr);
+		if (!window)
+		{
+			glfwTerminate();
+			LOG_CRITICAL("Can't create window.");
+			return -2;
+		}
 
-        glfwSetWindowUserPointer(window, &data); // give handler pointer to that ever data we want to use inside callback function
-        glfwSetWindowSizeCallback(window, 
-            [](GLFWwindow* pwindow, int width, int height)
-            {
-                WindowData& data = *static_cast<WindowData*>(glfwGetWindowUserPointer(pwindow));
-                data.width = width;
-                data.height = height;
 
-                EventWindowResize event(width, height); 
-                data.eventCallbackFn(event);
-            }
-        );
+		/* Make the window's context current */
+		glfwMakeContextCurrent(window);
 
-        glfwSetCursorPosCallback(window, 
-            [](GLFWwindow* pwindow, double x, double y)
-            {
-                WindowData& data = *static_cast<WindowData*>(glfwGetWindowUserPointer(pwindow));
+		// Link all possible opengl functions
+		// GLADloadproc is a loader. We can use it from glad or from glfw. Here we are using glfw one.
+		// GLADloadproc takes name of function and returns address of this function
+		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+			LOG_CRITICAL("Failed to initialize GLAD");
+			return -1;
+		}
 
-                EventMouseMoved event(x, y); 
-                data.eventCallbackFn(event);
-            }
-        );
+		glfwSetWindowUserPointer(window, &data); // give handler pointer to that ever data we want to use inside callback function
+		glfwSetWindowSizeCallback(window,
+			[](GLFWwindow* pwindow, int width, int height)
+			{
+				WindowData& data = *static_cast<WindowData*>(glfwGetWindowUserPointer(pwindow));
+				data.width = width;
+				data.height = height;
 
-        glfwSetWindowCloseCallback(window, 
-            [](GLFWwindow* pwindow)
-            {
-                WindowData& data = *static_cast<WindowData*>(glfwGetWindowUserPointer(pwindow));
+				EventWindowResize event(width, height);
+				data.eventCallbackFn(event);
+			}
+		);
 
-                EventWindowClose event; 
-                data.eventCallbackFn(event);
-            }
-        );
+		glfwSetCursorPosCallback(window,
+			[](GLFWwindow* pwindow, double x, double y)
+			{
+				WindowData& data = *static_cast<WindowData*>(glfwGetWindowUserPointer(pwindow));
 
-        return 0;
-    }
+				EventMouseMoved event(x, y);
+				data.eventCallbackFn(event);
+			}
+		);
 
-    void Window::shutdown(){
-        glfwDestroyWindow(window);
-        glfwTerminate();
-    }
+		glfwSetWindowCloseCallback(window,
+			[](GLFWwindow* pwindow)
+			{
+				WindowData& data = *static_cast<WindowData*>(glfwGetWindowUserPointer(pwindow));
 
-    void Window::on_update(){
-        glClearColor(1,0,0,0);
-        glClear(GL_COLOR_BUFFER_BIT);
+				EventWindowClose event;
+				data.eventCallbackFn(event);
+			}
+		);
 
-        ImGuiIO& io = ImGui::GetIO();
-        io.DisplaySize.x = static_cast<float>(get_width());
-        io.DisplaySize.y = static_cast<float>(get_height());
-        
-        ImGui_ImplOpenGL3_NewFrame(); // create fram where we will draw
-        ImGui::NewFrame();
+		return 0;
+	}
 
-        ImGui::ShowDemoWindow(); // create data 
-        
-        ImGui::Render(); // draw data using imgui 
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData()); // use our data to draw using opengl for example
+	void Window::shutdown() {
+		glfwDestroyWindow(window);
+		glfwTerminate();
+	}
 
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
+	void Window::on_update() {
+		glClearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		ImGuiIO& io = ImGui::GetIO();
+		io.DisplaySize.x = static_cast<float>(get_width());
+		io.DisplaySize.y = static_cast<float>(get_height());
+
+		ImGui_ImplOpenGL3_NewFrame(); // create fram where we will draw
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
+		ImGui::ShowDemoWindow(); // create data 
+
+		ImGui::Begin("Background Color Window"); // create window
+		ImGui::ColorEdit4("Background Color", backgroundColor);
+		ImGui::End();
+
+		ImGui::Render(); // draw data using imgui 
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData()); // use our data to draw using opengl for example
+
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+	}
 
 } // namespace  SimpleEngineCore
