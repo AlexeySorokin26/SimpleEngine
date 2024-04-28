@@ -26,19 +26,24 @@ namespace  SimpleEngine {
 		0.0f, 0.0f, 1.0f
 	};
 
+	// we run it for every vertex (every point)
 	const char* vertex_shader =
 		"#version 460\n"
-		"layout(location = 0) in vec3 vertex_position;" // in input data 
-		"layout(location = 1) in vec3 vertex_color;" // location of input data like 1 arg in function
+		"layout(location = 0) in vec3 vertex_position;" // "data type": in/out vec3 
+		"layout(location = 1) in vec3 vertex_color;" // what is layout? shader needs to find out input data 
+		// which could be points (vertex_position) or colors(vertex_color). and as args in function input data 
+		// has a position. so first "arg" witll be vertex_position and the second one will vertex_color
 		"out vec3 color;"
 		"void main() {"
 		"   color = vertex_color;"
-		"   gl_Position = vec4(vertex_position, 1.0);" // set pos of vertex
+		"   gl_Position = vec4(vertex_position, 1.0);" // gl_Position is special opengl vertex position which 
+		// has to be normalized 
 		"}";
 
+	// for every fragment (every pixel we have in out triangle (or whatever we have)) 
 	const char* fragment_shader =
 		"#version 460\n"
-		"in vec3 color;"
+		"in vec3 color;"  // our interpolated color
 		"out vec4 frag_color;"
 		"void main() {"
 		"   frag_color = vec4(color, 1.0);"
@@ -148,25 +153,26 @@ namespace  SimpleEngine {
 		shader_program = glCreateProgram(); // create program as in c++
 		glAttachShader(shader_program, vs); // link vertex shader to program
 		glAttachShader(shader_program, fs);
-		glLinkProgram(shader_program); // "link all together"
+		glLinkProgram(shader_program); // create final program and "link all together"
 
 		glDeleteShader(vs); // we don't need anymore so can delete shaders 
 		glDeleteShader(fs);
 
-		// second now pass our points and colors 
+		// second now we need to pass gpu our data (which is positions and colors currently) 
 		// for that we generate vertex buffer object
-		// like in cuda i guess 
+		// like in cuda 
 		GLuint points_vbo = 0;
 		glGenBuffers(1, &points_vbo); // (how many buffers we can create array for example, address there to)
-		glBindBuffer(GL_ARRAY_BUFFER, points_vbo); // make current buffer current. current can be only one
+		glBindBuffer(GL_ARRAY_BUFFER, points_vbo); // make current buffer current. current can be only one. (type, id)
 		glBufferData(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW); // now we can fill our buffer on gpu
-
+		//(type, size in bytes, pointer to data, GL_STATIC_DRAW we use because we don't change points. DYNAMIC in opposite can change data)
 		GLuint colors_vbo = 0;
 		glGenBuffers(1, &colors_vbo);
 		glBindBuffer(GL_ARRAY_BUFFER, colors_vbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
 
-		// gpu does not know yet about our buffers data 
+		// gpu does not know what to do with our buffers yet and how to link them with input shaders args.
+		// for that we are using vertex array object. vao can handle several vertex buffer objects. 
 		// we need to link it together 
 		// we use vertex array object for that 
 		glGenVertexArrays(1, &vao); // generate it first  (how many, address)
@@ -194,8 +200,11 @@ namespace  SimpleEngine {
 		glClearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		// first we need to inlude shader we wanted to use 
 		glUseProgram(shader_program);
+		// second we need to include vao for data
 		glBindVertexArray(vao);
+		// finally draw (how, index_start in our data, how many vertex we want to draw)
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		ImGuiIO& io = ImGui::GetIO();
