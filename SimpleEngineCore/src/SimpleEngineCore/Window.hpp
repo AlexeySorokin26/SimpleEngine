@@ -42,7 +42,7 @@ namespace SimpleEngine {
 
 		GLFWwindow* window = nullptr;
 		WindowData data;
-		float backgroundColor[4] = { 1.f,0.f,0.f,0.f };
+		float backgroundColor[4] = { 0.33f, 0.33f, 0.33f, 0.f };
 	};
 
 }
