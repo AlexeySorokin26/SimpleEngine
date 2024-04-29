@@ -18,15 +18,21 @@ namespace  SimpleEngine {
 	static bool GLFW_initialized = false;
 
 	GLfloat points[] = {
-		0.0f,  0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-	   -0.5f, -0.5f, 0.0f
+	   0.0f,  0.5f, 0.0f,
+	   0.5f, -0.5f, 0.0f,
+	  -0.5f, -0.5f, 0.0f
 	};
 
 	GLfloat colors[] = {
-		1.0f, 0.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.0f, 0.0f, 1.0f
+	1.0f, 0.0f, 0.0f,
+	0.0f, 1.0f, 0.0f,
+	0.0f, 0.0f, 1.0f
+	};
+
+	GLfloat positions_colors[] = {
+		0.0f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,
+		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 1.0f,
+	   -0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 1.0f
 	};
 
 	// we run it for every vertex (every point)
@@ -53,9 +59,13 @@ namespace  SimpleEngine {
 		"}";
 
 	std::unique_ptr<ShaderProgram> p_shader_program;
+
 	std::unique_ptr<VertexBuffer> p_points_vbo;
 	std::unique_ptr<VertexBuffer> p_colors_vbo;
-	std::unique_ptr<VertexArray> p_vao;
+	std::unique_ptr<VertexArray> p_vao_2buffers; // use 2 buffers 
+
+	std::unique_ptr<VertexBuffer> p_positions_colors_vbo;
+	std::unique_ptr<VertexArray> p_vao_1buffer; // use 1 buffer
 
 	Window::Window(std::string title, const unsigned int width, const unsigned int height)
 		: data({ std::move(title), width, height }) {
@@ -154,17 +164,30 @@ namespace  SimpleEngine {
 		// second: now we need to pass gpu our data (which is positions and colors currently) 
 		// for that we generate vertex buffer object
 		// like in cuda 
-		p_points_vbo = std::make_unique<VertexBuffer>(points, sizeof(points));
-		p_colors_vbo = std::make_unique<VertexBuffer>(colors, sizeof(colors));
-
 		// third: gpu does not know what to do with our buffers yet and how to link them with input shaders args.
 		// for that we are using vertex array object. vao can handle several vertex buffer objects. 
 		// we need to link it together 
 		// we use vertex array object for that 
-		p_vao = std::make_unique<VertexArray>();
-		p_vao->add_buffer(*p_points_vbo);
-		p_vao->add_buffer(*p_colors_vbo);
+		BufferLayout buffer_layout_1vec3
+		{
+			ShaderDataType::Float3
+		};
 
+		p_vao_2buffers = std::make_unique<VertexArray>();
+		p_points_vbo = std::make_unique<VertexBuffer>(points, sizeof(points), buffer_layout_1vec3);
+		p_colors_vbo = std::make_unique<VertexBuffer>(colors, sizeof(colors), buffer_layout_1vec3);
+
+		p_vao_2buffers->add_buffer(*p_points_vbo);
+		p_vao_2buffers->add_buffer(*p_colors_vbo);
+
+		BufferLayout buffer_layout_2vec3
+		{
+			ShaderDataType::Float3,
+			ShaderDataType::Float3
+		};
+		p_vao_1buffer = std::make_unique<VertexArray>();
+		p_positions_colors_vbo = std::make_unique<VertexBuffer>(positions_colors, sizeof(positions_colors), buffer_layout_2vec3);
+		p_vao_1buffer->add_buffer(*p_positions_colors_vbo);
 		return 0;
 	}
 
@@ -177,13 +200,6 @@ namespace  SimpleEngine {
 		glClearColor(backgroundColor[0], backgroundColor[1], backgroundColor[2], backgroundColor[3]);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		// first we need to inlude shader we wanted to use 
-		p_shader_program->bind();
-		// second we need to include vao for data
-		p_vao->bind();
-		// finally draw (how, index_start in our data, how many vertex we want to draw)
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize.x = static_cast<float>(get_width());
 		io.DisplaySize.y = static_cast<float>(get_height());
@@ -195,6 +211,21 @@ namespace  SimpleEngine {
 		ImGui::ShowDemoWindow(); // create data 
 
 		ImGui::Begin("Background Color Window"); // create window
+		static bool use_2_buffers = true;
+		ImGui::Checkbox("2 Buffers", &use_2_buffers);
+		if (use_2_buffers)
+		{
+			p_shader_program->bind();
+			p_vao_2buffers->bind();
+			glDrawArrays(GL_TRIANGLES, 0, 3);
+		}
+		else
+		{
+			p_shader_program->bind();
+			p_vao_1buffer->bind();
+			glDrawArrays(GL_TRIANGLES, 0, 3);
+		}
+
 		ImGui::ColorEdit4("Background Color", backgroundColor);
 		ImGui::End();
 

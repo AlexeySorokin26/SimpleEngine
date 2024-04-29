@@ -54,11 +54,21 @@ namespace SimpleEngine {
 		bind();
 		vertex_buffer.bind();
 
-		// link vbo with their position (location) in shaders 
-		glEnableVertexAttribArray(m_elements_count); // first we have to TURN on this position (location -> 0) 
-		glVertexAttribPointer(m_elements_count, 3, GL_FLOAT, GL_FALSE, 0, nullptr); // link data 
-		// (location, how many numbers we have (x,y,z), data type, if normalized, stride, shift)
-
-		++m_elements_count;
+		for (const BufferElement& current_element : vertex_buffer.get_layout().get_elements())
+		{
+			// link vbo with their position (location) in shaders 
+			glEnableVertexAttribArray(m_elements_count); // first we have to TURN on this position (location -> 0) 
+			// link data 
+			// (location, how many numbers we have (x,y,z), data type, if normalized, stride, shift)k
+			glVertexAttribPointer(
+				m_elements_count,
+				static_cast<GLint>(current_element.components_count),
+				current_element.component_type,
+				GL_FALSE,
+				static_cast<GLsizei>(vertex_buffer.get_layout().get_stride()),
+				reinterpret_cast<const void*>(current_element.offset)
+			);
+			++m_elements_count;
+		}
 	}
 }
