@@ -1,3 +1,4 @@
 .vscode/
 b
-build 
+build
+.DS_Store
