@@ -74,6 +74,7 @@ add_library(ImGui STATIC
 	${IMGUI_INCLUDES}
 	${IMGUI_SOURCES}
 )
+target_compile_features(ImGui PUBLIC cxx_std_17)
 
 target_include_directories(ImGui PUBLIC ../external)
 target_include_directories(ImGui PUBLIC ../external/imgui)
