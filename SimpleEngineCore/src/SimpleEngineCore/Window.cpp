@@ -14,6 +14,8 @@
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <imgui/backends/imgui_impl_glfw.h>
 
+#include <glm/glm.hpp>
+
 namespace  SimpleEngine {
 
 	static bool GLFW_initialized = false;
@@ -174,6 +176,8 @@ namespace  SimpleEngine {
 
 		p_vao->add_vertex_buffer(*p_positions_colors_vbo);
 		p_vao->set_index_buffer(*p_index_buffer);
+
+		glm::mat3 M(1, 0, 0, 2, 0, 0, 3, 0, 0);
 
 		return 0;
 	}
