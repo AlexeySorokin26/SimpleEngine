@@ -3,6 +3,7 @@
 #include "SimpleEngineCore/Log.hpp"
 
 #include <glad/glad.h>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace SimpleEngine
 {
@@ -87,6 +88,13 @@ namespace SimpleEngine
 	void ShaderProgram::unbind()
 	{
 		glUseProgram(0);
+	}
+
+	void ShaderProgram::setMatrix4(const char* name, const glm::mat4& matrix) const
+	{
+		// we pass uniform matrix in shader
+		glUniformMatrix4fv(glGetUniformLocation(m_id, name), 1, GL_FALSE, glm::value_ptr(matrix));
+		// (location, count (how many matrices), transpose or not, pointer to data)
 	}
 
 	ShaderProgram& ShaderProgram::operator=(ShaderProgram&& shaderProgram)
