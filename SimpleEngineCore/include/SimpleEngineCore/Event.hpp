@@ -1,107 +1,145 @@
 #pragma once
 
+#include "Keys.hpp"
+
 #include <functional>
 #include <array>
 
-namespace SimpleEngine{
+namespace SimpleEngine {
 
-    enum class EventType
-    {
-        WindowResize = 0,
-        WindowClose,
+	enum class EventType
+	{
+		WindowResize = 0,
+		WindowClose,
 
-        KeyPressed,
-        KeyReleased,
+		KeyPressed,
+		KeyReleased,
 
-        MouseButtonPressed,
-        MouseButtonReleased,
-        MouseMoved,
+		MouseButtonPressed,
+		MouseButtonReleased,
+		MouseMoved,
 
 
-        EventsCount
-    };
+		EventsCount
+	};
 
-    struct BaseEvent
-    {
-        virtual ~BaseEvent() = default;
-        virtual EventType get_type() const = 0;
-    };
+	struct BaseEvent
+	{
+		virtual ~BaseEvent() = default;
+		virtual EventType get_type() const = 0;
+	};
 
-    class EventDispatcher
-    {
-    public:
-        template<typename EventType>
-        void add_event_listener(std::function<void(EventType&)> callback)
-        {
-            auto baseCallback = [callback](BaseEvent& e)
-            {
-                if (e.get_type() == EventType::type)
-                {
-                    callback(static_cast<EventType&>(e));
-                }
-            };
-            m_eventCallbacks[static_cast<size_t>(EventType::type)] = std::move(baseCallback);
-        }
+	class EventDispatcher
+	{
+	public:
+		template<typename EventType>
+		void add_event_listener(std::function<void(EventType&)> callback)
+		{
+			auto baseCallback = [callback](BaseEvent& e)
+				{
+					if (e.get_type() == EventType::type)
+					{
+						callback(static_cast<EventType&>(e));
+					}
+				};
+			m_eventCallbacks[static_cast<size_t>(EventType::type)] = std::move(baseCallback);
+		}
 
-        void dispatch(BaseEvent& event)
-        {
-            auto& callback = m_eventCallbacks[static_cast<size_t>(event.get_type())];
-            if (callback)
-            {
-                callback(event);
-            }
-        }
+		void dispatch(BaseEvent& event)
+		{
+			auto& callback = m_eventCallbacks[static_cast<size_t>(event.get_type())];
+			if (callback)
+			{
+				callback(event);
+			}
+		}
 
-    private:
-        std::array<std::function<void(BaseEvent&)>, static_cast<size_t>(EventType::EventsCount)> m_eventCallbacks;
-    };
+	private:
+		std::array<std::function<void(BaseEvent&)>, static_cast<size_t>(EventType::EventsCount)> m_eventCallbacks;
+	};
 
-    struct EventMouseMoved : public BaseEvent
-    {
-        EventMouseMoved(const double new_x, const double new_y)
-            : x(new_x)
-            , y(new_y)
-        {
-        }
+	struct EventMouseMoved : public BaseEvent
+	{
+		EventMouseMoved(const double new_x, const double new_y)
+			: x(new_x)
+			, y(new_y)
+		{
+		}
 
-        virtual EventType get_type() const override
-        {
-            return type;
-        }
+		virtual EventType get_type() const override
+		{
+			return type;
+		}
 
-        double x;
-        double y;
+		double x;
+		double y;
 
-        static const EventType type = EventType::MouseMoved;
-    };
+		static const EventType type = EventType::MouseMoved;
+	};
 
-    struct EventWindowResize : public BaseEvent
-    {
-        EventWindowResize(const unsigned int new_width, const unsigned int new_height)
-            : width(new_width)
-            , height(new_height)
-        {
-        }
+	struct EventWindowResize : public BaseEvent
+	{
+		EventWindowResize(const unsigned int new_width, const unsigned int new_height)
+			: width(new_width)
+			, height(new_height)
+		{
+		}
 
-        virtual EventType get_type() const override
-        {
-            return type;
-        }
+		virtual EventType get_type() const override
+		{
+			return type;
+		}
 
-        unsigned int width;
-        unsigned int height;
+		unsigned int width;
+		unsigned int height;
 
-        static const EventType type = EventType::WindowResize;
-    };
+		static const EventType type = EventType::WindowResize;
+	};
 
-    struct EventWindowClose : public BaseEvent
-    {
-        virtual EventType get_type() const override
-        {
-            return type;
-        }
+	struct EventWindowClose : public BaseEvent
+	{
+		virtual EventType get_type() const override
+		{
+			return type;
+		}
 
-        static const EventType type = EventType::WindowClose;
-    };
+		static const EventType type = EventType::WindowClose;
+	};
+
+	struct EventKeyPressed : public BaseEvent
+	{
+		EventKeyPressed(const KeyCode key_code, const bool repeated)
+			: key_code(key_code)
+			, repeated(repeated)
+		{
+		}
+
+		virtual EventType get_type() const override
+		{
+			return type;
+		}
+
+		KeyCode key_code;
+		bool repeated;
+
+		static const EventType type = EventType::KeyPressed;
+	};
+
+	struct EventKeyReleased : public BaseEvent
+	{
+		EventKeyReleased(const KeyCode key_code)
+			: key_code(key_code)
+		{
+		}
+
+		virtual EventType get_type() const override
+		{
+			return type;
+		}
+
+		KeyCode key_code;
+
+		static const EventType type = EventType::KeyReleased;
+	};
 
 }

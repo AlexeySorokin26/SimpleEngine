@@ -7,6 +7,8 @@ set(ENGINE_PUBLIC_INCLUDES
 	include/SimpleEngineCore/Log.hpp
 	include/SimpleEngineCore/Event.hpp
 	include/SimpleEngineCore/Camera.hpp
+	include/SimpleEngineCore/Keys.hpp
+	include/SimpleEngineCore/Input.hpp
 )
 
 set(ENGINE_PRIVATE_INCLUDES
@@ -24,6 +26,7 @@ set(ENGINE_PRIVATE_SOURCES
 	src/SimpleEngineCore/Window.cpp
 	src/SimpleEngineCore/Modules/UIModule.cpp
 	src/SimpleEngineCore/Camera.cpp
+	src/SimpleEngineCore/Input.cpp
 	src/SimpleEngineCore/Rendering/OpenGL/ShaderProgram.cpp
 	src/SimpleEngineCore/Rendering/OpenGL/VertexBuffer.cpp
 	src/SimpleEngineCore/Rendering/OpenGL/VertexArray.cpp
