@@ -25,7 +25,7 @@ namespace SimpleEngine {
         const glm::mat4& get_view_matrix();
         const glm::mat4& get_projection_matrix() const { return m_projection_matrix; }
 
-        void move_forward(const float delta);
+        void move_forward(const float delta); // move camera forward adding to its position delta * m_direction 
         void move_right(const float delta);
         void move_up(const float delta);
 
@@ -45,7 +45,7 @@ namespace SimpleEngine {
         glm::vec3 m_rotation; // X - Roll, Y - Pitch, Z - Yaw
         ProjectionMode m_projection_mode;
 
-        glm::vec3 m_direction;
+        glm::vec3 m_direction; // camera vectors directions
         glm::vec3 m_right;
         glm::vec3 m_up;
 
